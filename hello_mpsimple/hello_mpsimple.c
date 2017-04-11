@@ -43,7 +43,7 @@
 unsigned int volatile hello_received = 0;
 
 // This function is called by the driver on receival of a message
-void recv(unsigned int *buffer,int len) {
+void recv(uint32_t *buffer, size_t len) {
     int source_tile, source_rank;
 
     assert(len==1); // This is always one flit
@@ -55,16 +55,16 @@ void recv(unsigned int *buffer,int len) {
     source_rank = optimsoc_get_tilerank(source_tile);
 
     // Print hello for this
-//    printf("Hello World from %d!\n",source_rank);
+    //printf("Hello World from %d!\n",source_rank);
 
     // Count up received messages
     hello_received++;
 }
 
 // The main function
-void main() {
-	if (or1k_coreid() != 0)
-		return;
+int main() {
+    if (or1k_coreid() != 0)
+        return 0;
 
     // Initialize optimsoc library
     optimsoc_init(0);
@@ -76,28 +76,41 @@ void main() {
 
     // Determine tiles rank
     int rank = optimsoc_get_ctrank();
+    size_t endpoints = optimsoc_mp_simple_num_endpoints();
 
     if (rank==0) {
+      size_t total = (optimsoc_get_numct()-1) * endpoints;
         // Rank 0 simply waits for all tiles to send their message
-        printf("Wait for %d messages\n", optimsoc_get_numct()-1);
-        while (hello_received < (optimsoc_get_numct()-1) ) {}
+        printf("Wait for %d messages\n", total);
+
+	optimsoc_mp_simple_enable(0);
+	optimsoc_mp_simple_enable(1);
+
+        while (hello_received < total) {}
 
         // Conclude and print hello
         printf("Received all messages. Hello World!\n",rank,optimsoc_get_numct());
     } else {
-        // The message is a one flit packet
-        uint32_t buffer[1] = { 0 };
+        for (int ep = 0; ep < endpoints; ep++) {
+          // Wait until the remote endpoint buffer is ready
+          while (!optimsoc_mp_simple_ctready(0,ep)) {}
 
-        // Set destination (tile 0)
-        set_bits(&buffer[0],0,OPTIMSOC_DEST_MSB,OPTIMSOC_DEST_LSB);
+          // The message is a one flit packet
+          uint32_t buffer[1] = { 0 };
 
-        // Set class (0)
-        set_bits(&buffer[0],0,OPTIMSOC_CLASS_MSB,OPTIMSOC_CLASS_LSB);
+          // Set destination (tile 0)
+          set_bits(&buffer[0],0,OPTIMSOC_DEST_MSB,OPTIMSOC_DEST_LSB);
 
-        // Set sender as my rank
-        set_bits(&buffer[0],optimsoc_get_ranktile(rank),OPTIMSOC_SRC_MSB,OPTIMSOC_SRC_LSB);
+          // Set class (0)
+          set_bits(&buffer[0],0,OPTIMSOC_CLASS_MSB,OPTIMSOC_CLASS_LSB);
 
-        // Send the message
-        optimsoc_mp_simple_send(1,(uint32_t*) buffer);
+          // Set sender as my rank
+          set_bits(&buffer[0],optimsoc_get_ranktile(rank),OPTIMSOC_SRC_MSB,OPTIMSOC_SRC_LSB);
+
+          // Send the message
+          optimsoc_mp_simple_send(ep,1,(uint32_t*) buffer);
+	}
     }
+
+    return 0;
 }
