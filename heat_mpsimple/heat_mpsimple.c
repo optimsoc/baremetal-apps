@@ -134,7 +134,7 @@ int xdim,ydim;
 void heat();
 
 // This function handles incoming messages from other ranks
-void recv(unsigned int *buffer,int len);
+void recv(uint32_t *buffer, size_t len);
 
 // Barrier for all cores
 void barrier();
@@ -357,7 +357,7 @@ void heat() {
                 // Copy element to payload in buffer
                 memcpy(&buffer[2],&matrix[curmatrix][POS(x,1)],4);
                 // Call library to send the element
-                optimsoc_mp_simple_send(3,buffer);
+                optimsoc_mp_simple_send(3,0,(uint32_t*) buffer);
             }
         }
 
@@ -372,7 +372,7 @@ void heat() {
             for (int x=1;x<xdim+1;x++) {
                 buffer[1] = x;
                 memcpy(&buffer[2],&matrix[curmatrix][POS(x,ydim)],4);
-                optimsoc_mp_simple_send(3,buffer);
+                optimsoc_mp_simple_send(3,0,(uint32_t*) buffer);
             }
         }
 
@@ -387,7 +387,7 @@ void heat() {
             for (int y=1;y<ydim+1;y++) {
                 buffer[1] = y;
                 memcpy(&buffer[2],&matrix[curmatrix][POS(1,y)],4);
-                optimsoc_mp_simple_send(3,buffer);
+                optimsoc_mp_simple_send(3,0,(uint32_t*) buffer);
             }
         }
 
@@ -402,7 +402,7 @@ void heat() {
             for (int y=1;y<ydim+1;y++) {
                 buffer[1] = y;
                 memcpy(&buffer[2],&matrix[curmatrix][POS(xdim,y)],4);
-                optimsoc_mp_simple_send(3,buffer);
+                optimsoc_mp_simple_send(3,0,(uint32_t*) buffer);
             }
         }
 
@@ -451,7 +451,7 @@ void heat() {
                 // Copy value
                 memcpy(&buffer[3],&matrix[other][POS(x,y)],4);
                 // Send this element
-                optimsoc_mp_simple_send(4,buffer);
+                optimsoc_mp_simple_send(4,0,(uint32_t*) buffer);
             }
         }
     }
@@ -481,7 +481,7 @@ int volatile barrier_continue = 0;
 // Result data
 //  Stores the data at the given positions
 
-void recv(unsigned int *buffer,int len) {
+void recv(uint32_t *buffer, size_t len) {
     assert(len>0); // Just to be sure
     assert(buffer); // Just to be sure
 
@@ -556,7 +556,7 @@ void barrier() {
             set_bits(&buffer,0,OPTIMSOC_CLASS_MSB,OPTIMSOC_CLASS_LSB);
             set_bits(&buffer,0,OPTIMSOC_SRC_MSB,OPTIMSOC_SRC_LSB);
             set_bits(&buffer,MSG_TYPE_BARRIER,1,0);
-            optimsoc_mp_simple_send(1,&buffer);
+            optimsoc_mp_simple_send(1,0,(uint32_t*) &buffer);
         }
     } else {
         // Send message to rank 0
@@ -566,7 +566,7 @@ void barrier() {
         set_bits(&buffer,0,OPTIMSOC_CLASS_MSB,OPTIMSOC_CLASS_LSB);
         set_bits(&buffer,rank,OPTIMSOC_SRC_MSB,OPTIMSOC_SRC_LSB);
         set_bits(&buffer,MSG_TYPE_BARRIER,1,0); // is a barrier
-        optimsoc_mp_simple_send(1,&buffer);
+        optimsoc_mp_simple_send(1,0,(uint32_t*) &buffer);
 
         // Wait until we received the message of rank 0
         while (barrier_continue==0) {}
