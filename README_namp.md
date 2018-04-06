@@ -1,0 +1,21 @@
+
+- namp00: Test messages
+- namp01: Test messages with CCM
+- namp02: Test channel
+- namp03: Test channel with CCM
+- namp04: Messages from 0 to TARGET (TILES-1)
+- namp05: Messages from i to TILES-1-i (for all i % 2 == 0)
+- namp06: Channel from 0 to TARGET (TILES-1)
+- namp07: Channel from i to TILES-1-i (for all i % 2 == 0)
+- namp08: 1-to-N messages (SLOTS)
+- namp09: 1-to-N messages CCM (SLOTS)
+- namp10: N-to-1 message (SLOTS)
+- namp11: N-to-1 messages CCM (SLOTS)
+- namp12: 1-to-N channels (SLOTS)
+- namp13: 1-to-N channels CCM (SLOTS)
+- namp14: N-to-1 channels (SLOTS)
+- namp15: N-to-1 channels CCM (SLOTS)
+- namp16: Messages with CCM from 0 to TARGET (TILES-1)
+- namp17: Messages with CCM from i to TILES-1-i (for all i % 2 == 0)
+- namp18: Channel with CCM from 0 to TARGET (TILES-1)
+- namp19: Channel with CCM from i to TILES-1-i (for all i % 2 == 0)
