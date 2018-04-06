@@ -33,16 +33,16 @@
 uint8_t data0[1024];
 uint8_t data1[1024];
 
-struct endpoint_local ep_local;
-struct endpoint_remote ep_remote;
-
 #ifndef SIZE
 #define SIZE 3
 #endif
 
-#ifndef TARGET
-#define TARGET (tiles - 1)
+#ifndef SLOTS
+#define SLOTS 4
 #endif
+
+struct endpoint_local ep_local;
+struct endpoint_remote ep_remote[SLOTS];
 
 int main() {
   uint32_t size;
@@ -58,25 +58,27 @@ int main() {
   uint32_t tiles = optimsoc_get_numct();
 
   if (optimsoc_get_ctrank() == 0) {
-    ep_remote.domain = TARGET;
-    ep_remote.addr = &ep_local;
-    ep_remote.credit = 1 << ep_local.rbuf->capacity;
-    ep_remote.idx = 0;
-    ep_remote.capacity = ep_local.rbuf->capacity;
-    ep_remote.buffer = (uint32_t) ep_local.rbuf->data;
-    ep_local.channel = &ep_remote;
+    for (int i = 0; i < SLOTS; i++) {
+      ep_remote[i].domain = 1 + i;
+      ep_remote[i].addr = (uint32_t) &ep_local;
+      ep_remote[i].credit = 1 << ep_local.rbuf->capacity;
+      ep_remote[i].idx = 0;
+      ep_remote[i].capacity = ep_local.rbuf->capacity;
+      ep_remote[i].buffer = (uint32_t) ep_local.rbuf->data;
+    }
 
     for (int j = 0; j < 25; j++) {
-      endpoint_send(&ep_local, &ep_remote, data0, 1<<SIZE, 0);
+      for (int i = 0; i < SLOTS; i++) {
+	endpoint_send(&ep_local, &ep_remote[i], data0, 1<<SIZE, i);
+      }
     }
-  } else if (optimsoc_get_ctrank() == TARGET) {
-    ep_remote.domain = 0;
-    ep_remote.addr = &ep_remote;
-    ep_local.channel = &ep_remote;
+  } else if (optimsoc_get_ctrank() < (1+SLOTS)) {
+    ep_remote[0].domain = 0;
+    ep_remote[0].addr = (uint32_t) &ep_remote;
 
     for (int i = 0; i < 25; i++) {
       size = 1024;
-      endpoint_receive(&ep_local, &data0, &size, 0);
+      endpoint_receive(&ep_local, data0, &size, 0);
     }
   }
 

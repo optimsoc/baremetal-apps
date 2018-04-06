@@ -41,7 +41,7 @@ int main() {
 
   optimsoc_init(0);
 
-  endpoint_init(&ep_local);
+  endpoint_init(&ep_local, 0);
 
   for (size_t i = 0; i < 32; i++) {
     data0[i] = i & 0xff;
@@ -49,7 +49,7 @@ int main() {
 
   if (optimsoc_get_ctrank() == 1) {
     ep_remote.domain = 0;
-    ep_remote.addr = &ep_local;
+    ep_remote.addr = (uint32_t) &ep_local;
     ep_remote.credit = 1 << ep_local.rbuf->capacity;
     ep_remote.idx = 0;
     ep_remote.capacity = ep_local.rbuf->capacity;
@@ -65,7 +65,7 @@ int main() {
     }
   } else if (optimsoc_get_ctrank() == 0) {
     ep_remote.domain = 1;
-    ep_remote.addr = &ep_remote;
+    ep_remote.addr = (uint32_t) &ep_remote;
     REG32(0xe0200004) = (uint32_t) &ep_remote;
     REG32(0xe0200008) = (uint32_t) 1;
     for (int i = 0; i < 80; i++) {

@@ -56,9 +56,9 @@ int main() {
   uint32_t myself = optimsoc_get_ctrank();
   uint32_t partner = tiles - myself - 1;
 
-  if (myself < tiles/2) {
+  if (myself % 2 == 0) {
     ep_remote.domain = partner;
-    ep_remote.addr = &ep_local;
+    ep_remote.addr = (uint32_t) &ep_local;
     ep_remote.credit = 1 << ep_local.rbuf->capacity;
     ep_remote.idx = 0;
     ep_remote.capacity = ep_local.rbuf->capacity;
@@ -70,12 +70,12 @@ int main() {
     }
   } else {
     ep_remote.domain = partner;
-    ep_remote.addr = &ep_remote;
+    ep_remote.addr = (uint32_t) &ep_remote;
     ep_local.channel = &ep_remote;
 
     for (int i = 0; i < 25; i++) {
       size = 1024;
-      endpoint_receive(&ep_local, &data0, &size, 0);
+      endpoint_receive(&ep_local, data0, &size, 0);
     }
   }
 

@@ -49,7 +49,7 @@ struct endpoint_remote {
   uint32_t domain;
   uint32_t node;
   uint32_t port;
-  struct endpoint_local *addr;
+  uint32_t addr;
   uint32_t credit;
   uint32_t idx;
   uint32_t capacity;
@@ -62,3 +62,5 @@ void endpoint_send(struct endpoint_local *lep, struct endpoint_remote *rep, uint
 void endpoint_receive(struct endpoint_local *ep, uint8_t *data, uint32_t *size, uint8_t namp_slot);
 
 void setup_ccm(struct endpoint_local *lep, struct endpoint_remote *rep, uint8_t namp_slot);
+
+void skip_copy(int set);

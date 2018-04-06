@@ -30,8 +30,8 @@
 #include <optimsoc-baremetal.h>
 #include "namp.h"
 
-uint8_t data0[1024];
-uint8_t data1[1024];
+uint8_t data0[4096];
+uint8_t data1[4096];
 
 struct endpoint_local ep_local;
 struct endpoint_remote ep_remote;
@@ -56,9 +56,9 @@ int main() {
   uint32_t myself = optimsoc_get_ctrank();
   uint32_t partner = tiles - myself - 1;
 
-  if (myself < tiles/2) {
+  if (myself % 2 == 0) {
     ep_remote.domain = partner;
-    ep_remote.addr = &ep_local;
+    ep_remote.addr = (uint32_t) &ep_local;
     ep_remote.credit = 1 << ep_local.rbuf->capacity;
     ep_remote.idx = 0;
     ep_remote.capacity = ep_local.rbuf->capacity;
@@ -66,11 +66,12 @@ int main() {
 
     for (int j = 0; j < 25; j++) {
       endpoint_send(&ep_local, &ep_remote, data0, 1<<SIZE, 0);
+      for (int i = 0; i < 100; i++) {}
     }
   } else {
     for (int i = 0; i < 25; i++) {
       size = 1024;
-      endpoint_receive(&ep_local, &data0, &size);
+      endpoint_receive(&ep_local, data0, &size, 0);
     }
   }
 

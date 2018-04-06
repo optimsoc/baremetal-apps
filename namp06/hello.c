@@ -59,7 +59,7 @@ int main() {
 
   if (optimsoc_get_ctrank() == 0) {
     ep_remote.domain = TARGET;
-    ep_remote.addr = &ep_local;
+    ep_remote.addr = (uint32_t) &ep_local;
     ep_remote.credit = 1 << ep_local.rbuf->capacity;
     ep_remote.idx = 0;
     ep_remote.capacity = ep_local.rbuf->capacity;
@@ -71,12 +71,12 @@ int main() {
     }
   } else if (optimsoc_get_ctrank() == TARGET) {
     ep_remote.domain = 0;
-    ep_remote.addr = &ep_remote;
+    ep_remote.addr = (uint32_t) &ep_remote;
     ep_local.channel = &ep_remote;
 
     for (int i = 0; i < 25; i++) {
       size = 1024;
-      endpoint_receive(&ep_local, &data0, &size, 0);
+      endpoint_receive(&ep_local, data0, &size, 0);
     }
   }
 

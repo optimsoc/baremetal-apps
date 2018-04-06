@@ -31,7 +31,7 @@
 
 int main() {
   optimsoc_init(0);
-
+  
   printf("Hello World! Core %d of %d in tile %d, my absolute core id is: %d\n",
          optimsoc_get_relcoreid(), optimsoc_get_tilenumcores(),
          optimsoc_get_tileid(), optimsoc_get_abscoreid());

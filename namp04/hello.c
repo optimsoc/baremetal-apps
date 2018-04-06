@@ -56,11 +56,11 @@ int main() {
   }
 
   uint32_t tiles = optimsoc_get_numct();
-
+  //  skip_copy(1);
 
   if (optimsoc_get_ctrank() == 0) {
     ep_remote.domain = TARGET;
-    ep_remote.addr = &ep_local;
+    ep_remote.addr = (uint32_t) &ep_local;
     ep_remote.credit = 1 << ep_local.rbuf->capacity;
     ep_remote.idx = 0;
     ep_remote.capacity = ep_local.rbuf->capacity;
@@ -68,11 +68,12 @@ int main() {
 
     for (int j = 0; j < 25; j++) {
       endpoint_send(&ep_local, &ep_remote, data0, 1<<SIZE, 0);
+      for (int i = 0; i < 100; i++) {}
     }
   } else if (optimsoc_get_ctrank() == TARGET) {
     for (int i = 0; i < 25; i++) {
       size = 1024;
-      endpoint_receive(&ep_local, &data0, &size);
+      endpoint_receive(&ep_local, data0, &size, 0);
     }
   }
 
