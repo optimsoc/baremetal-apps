@@ -30,12 +30,8 @@
 #include <optimsoc-baremetal.h>
 #include "namp.h"
 
-uint8_t data0[1024];
-uint8_t data1[1024];
-
-#ifndef SIZE
-#define SIZE 3
-#endif
+uint8_t data0[4096];
+uint8_t data1[4096];
 
 #ifndef SLOTS
 #define SLOTS 4
@@ -50,6 +46,7 @@ int main() {
   optimsoc_init(0);
 
   endpoint_init(&ep_local, 0);
+  skip_copy(1);
 
   for (size_t i = 0; i < 32; i++) {
     data0[i] = i & 0xff;

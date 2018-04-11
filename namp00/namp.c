@@ -45,6 +45,7 @@ void mp_cbuffer_commit(struct mp_cbuffer *buf, uint32_t idx, uint32_t size) {
 int mp_cbuffer_push(struct mp_cbuffer *buf, uint8_t *data,
 		     uint32_t size, uint32_t *idx) {
   if (mp_cbuffer_reserve(buf, idx) != 0) return -1;
+  OPTIMSOC_TRACE(0x401, 0);
   memcpy(buf->data + *idx * (1 << buf->max_msg_size), data, size);
   mp_cbuffer_commit(buf, *idx, size);
   return 0;
@@ -93,6 +94,7 @@ void endpoint_send(struct endpoint_local *lep, struct endpoint_remote *rep, uint
 
   if (lep->sbuf) {
     while(mp_cbuffer_push(lep->sbuf, data, size, &idx) != 0);
+    OPTIMSOC_TRACE(0x402, namp_slot);
     REG32(base_addr) = NAMP_TRIGGER;
   } else {
     while ((REG32(base_addr) & NAMP_DONE) == 0) {}
@@ -113,17 +115,18 @@ void endpoint_send(struct endpoint_local *lep, struct endpoint_remote *rep, uint
 }
 
 void endpoint_receive(struct endpoint_local *ep, uint8_t *data, uint32_t *size, uint8_t namp_slot) {
-  OPTIMSOC_TRACE(0x410, ep);
+  OPTIMSOC_TRACE(0x410, namp_slot);
   while (mp_cbuffer_pop(ep->rbuf, data, size) != 0) {}
 
   if (ep->channel) {
+    OPTIMSOC_TRACE(0x411, namp_slot);
     uint32_t base_addr = 0xe0200000 | (namp_slot << 14);
     while ((REG32(base_addr) & NAMP_DONE) == 0) {}
     REG32(base_addr + 4) = (uint32_t) ep->channel;
     REG32(base_addr + 8) = (uint32_t) 1;
     REG32(base_addr) = NAMP_VALID;
   }
-  OPTIMSOC_TRACE(0x411, *size);
+  OPTIMSOC_TRACE(0x412, namp_slot);
 }
 
 void setup_ccm(struct endpoint_local *lep, struct endpoint_remote *rep, uint8_t namp_slot) {

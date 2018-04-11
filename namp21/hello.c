@@ -40,7 +40,7 @@ int main() {
   uint32_t size;
 
   optimsoc_init(0);
-  //  skip_copy(1);
+  skip_copy(1);
 
   endpoint_init(&ep_local, 0);
 

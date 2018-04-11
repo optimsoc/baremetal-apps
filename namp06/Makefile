@@ -26,7 +26,7 @@ EXTRA_SRCS=namp.c
 SIZE?=3
 SLOTS?=4
 BUFFERSIZE?=2
-CFLAGS=-O0 -std=gnu99 -DSIZE=$(SIZE) -DSLOTS=$(SLOTS) -DBUFFERSIZE=$(BUFFERSIZE)
+CFLAGS=-O0 -std=gnu99 -DSIZE=$(SIZE) -DSLOTS=$(SLOTS) -DBUFFERSIZE=$(BUFFERSIZE) -DTARGET=1
 
 BUILDSCRIPTS=$(shell pkg-config --variable=buildscriptdir optimsoc-baremetal)
 include $(BUILDSCRIPTS)/Makefile.inc
