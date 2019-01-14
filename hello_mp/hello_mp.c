@@ -37,33 +37,55 @@
 
 // The main function
 int main() {
+    optimsoc_mp_result_t ret;
     if (or1k_coreid() != 0)
         return 0;
 
     // Initialize optimsoc library
     optimsoc_init(0);
-    optimsoc_mp_initialize(0);
+    ret = optimsoc_mp_initialize(0);
+    if (ret != OPTIMSOC_MP_SUCCESS) {
+      printf("initialization error\n");
+    }
+
+    optimsoc_trace_config_set(TRACE_ALL);
+    optimsoc_mp_trace_config_set(TRACE_MP_ALL);
 
     // Determine tiles rank
     uint32_t rank = optimsoc_get_ctrank();
 
     optimsoc_mp_endpoint_handle ep;
-    optimsoc_mp_endpoint_create(&ep, 0, 0, OPTIMSOC_MP_EP_CONNECTIONLESS, 2, 0);
-    
+    ret = optimsoc_mp_endpoint_create(&ep, optimsoc_get_tileid(), 0, 0, 2, 16, OPTIMSOC_MP_EP_DEFAULTS);
+    if (ret != OPTIMSOC_MP_SUCCESS) {
+      printf("Cannot create endpoint: %d\n", ret);
+      return 1;
+    }
+
     if (rank==0) {
+      mgmt_print_db();
+      while(1) {}
         size_t count = 0;
         while(count < (optimsoc_get_numct() - 1)) {
             uint32_t remote;
             size_t received;
-            optimsoc_mp_msg_recv(ep, (uint8_t*) &remote, 4, &received);
+            //optimsoc_mp_msg_recv(ep, (uint8_t*) &remote, 4, &received);
             printf("Received from %d\n", remote);
             count++;
         }
     } else {
         optimsoc_mp_endpoint_handle ep_remote;
-        optimsoc_mp_endpoint_get(&ep_remote, 0, 0, 0);
+        ret = optimsoc_mp_endpoint_get(&ep_remote, 0, 0, 0);
+	if (ret != OPTIMSOC_MP_SUCCESS) {
+	  printf("Cannot get remote endpoint: %d\n", ret);
+	  return 1;
+	}
+	mgmt_print_db();
 
-        optimsoc_mp_msg_send(ep, ep_remote, (uint8_t*) &rank, sizeof(rank));
+	ret = optimsoc_mp_msg_send(ep, ep_remote, (uint32_t*) &rank, sizeof(rank));
+	if (ret != OPTIMSOC_MP_SUCCESS) {
+	  printf("Cannot send message: %d\n", ret);
+	  return 1;
+	}
     }
 
     return 0;
